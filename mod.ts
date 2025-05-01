@@ -43,7 +43,7 @@ const entriesMap =
 
 const makeInfo =
 ([_, type, ...path]: string[]) =>
-({ name, Region }: Placemark): Path | Point => {
+({ name, Region, Point }: Placemark): Path | Point => {
     if (type == "Path") {
         const [continent, country, state] = path
         const [owner, line] = path.slice(-2)
@@ -62,9 +62,9 @@ const makeInfo =
         const [category, state] = path
         const [owner, line] = path.slice(-2)
 
-        const {north, east, west, south} = entriesMap(Number)(
-            Region?.LatLonAltBox as unknown as Record<string, string>
-        )
+        const [long, lat] = Point?.coordinates
+            .split(",")
+            .map(Number)|| []
 
         return {
             type,
@@ -74,8 +74,8 @@ const makeInfo =
             line,
             name,
 
-            long: (east + west) / 2,
-            lat: (north + south) / 2,
+            long,
+            lat,
         } as Point
     }
     console.log(type)
