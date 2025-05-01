@@ -32,18 +32,9 @@ interface Point {
     lat: number
 }
 
-const entriesMap =
-<V, O>
-(f: (v: V) => O) =>
-(obj: Record<string, V>) =>
-    Object.fromEntries(
-        Object.entries(obj || {})
-            .map(([k, v]) => [k, f(v)])
-    )
-
 const makeInfo =
 ([_, type, ...path]: string[]) =>
-({ name, Region, Point }: Placemark): Path | Point => {
+({ name, Point }: Placemark): Path | Point => {
     if (type == "Path") {
         const [continent, country, state] = path
         const [owner, line] = path.slice(-2)
@@ -62,7 +53,7 @@ const makeInfo =
         const [category, state] = path
         const [owner, line] = path.slice(-2)
 
-        const [long, lat] = Point?.coordinates
+        const [long, lat] = Point!.coordinates
             .split(",")
             .map(Number)|| []
 
