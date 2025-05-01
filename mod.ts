@@ -122,6 +122,7 @@ await Deno.writeTextFile("./temp/path.tsv",
 
 await Deno.writeTextFile("./temp/point.tsv",
     stringify([
+        "category",
         "state",
         "line",
         "name",
