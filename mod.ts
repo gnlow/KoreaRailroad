@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { parse, Folder, Placemark } from "https://denopkg.com/gnlow/kml.ts@0.1.0/mod.ts"
 
 using file = await Deno.open("./temp/k.kml")
@@ -7,6 +9,7 @@ const document = parse(file)
 type Info = Path | Point
 
 interface Path {
+    type: "Path"
     continent: string
     country: string
     state: string
@@ -17,6 +20,7 @@ interface Path {
 }
 
 interface Point {
+    type: "Point"
     category: string
     state: string
     
@@ -32,6 +36,7 @@ const makeInfo =
         const [continent, country, state] = path
         const [owner, line] = path.slice(-2)
         return {
+            type,
             continent,
             country,
             state,
@@ -45,6 +50,7 @@ const makeInfo =
         const [category, state] = path
         const [owner, line] = path.slice(-2)
         return {
+            type,
             category,
             state,
             owner,
@@ -72,11 +78,27 @@ const result = walk([])(document)
         //&& x.data[0] == "Point"
     )
 
-import { stringify } from "https://esm.sh/jsr/@std/csv@1.0.6"
+import { stringify as _stringify } from "https://esm.sh/jsr/@std/csv@1.0.6"
 
-await Deno.writeTextFile("./temp/k.tsv",
-    stringify(result as any, {
-        columns: ["line", "name"],
-        separator: "\t",
+const stringify =
+(columns: string[], separator = "\t") =>
+(data: any) =>
+    _stringify(data, {
+        columns,
+        separator,
     })
+
+console.log(
+    stringify(["state", "line", "name"], "\t\t\t")(result.filter(x => 1
+        && x.type == "Path"
+        && !x.line.endsWith("선")
+    ))
+)
+
+await Deno.writeTextFile("./temp/path.tsv",
+    stringify(["state", "line", "name"])(result.filter(x => x.type == "Path"))
+)
+
+await Deno.writeTextFile("./temp/point.tsv",
+    stringify(["state", "line", "name"])(result.filter(x => x.type == "Point"))
 )
