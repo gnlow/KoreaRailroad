@@ -17,6 +17,8 @@ interface Path {
     owner: string
     line: string
     name: string
+
+    coords: [number, number][]
 }
 
 interface Point {
@@ -34,7 +36,7 @@ interface Point {
 
 const makeInfo =
 ([_, type, ...path]: string[]) =>
-({ name, Point }: Placemark): Path | Point => {
+({ name, LineString, Point }: Placemark): Path | Point => {
     if (type == "Path") {
         const [continent, country, state] = path
         const [owner, line] = path.slice(-2)
@@ -46,6 +48,10 @@ const makeInfo =
             owner,
             line,
             name,
+
+            coords: LineString!.coordinates
+                .split(" ")
+                .map(x => x.split(",").slice(0, 2).map(Number)),
         } as Path
     }
 
@@ -96,15 +102,22 @@ const stringify =
         separator,
     })
 
+/*
 console.log(
     stringify(["state", "line", "name"], "\t\t\t")(result.filter(x => 1
         && x.type == "Path"
         && !x.line.endsWith("선")
     ))
 )
+*/
 
 await Deno.writeTextFile("./temp/path.tsv",
-    stringify(["state", "line", "name"])(result.filter(x => x.type == "Path"))
+    stringify([
+        "state",
+        "line",
+        "name",
+        "coords",
+    ])(result.filter(x => x.type == "Path"))
 )
 
 await Deno.writeTextFile("./temp/point.tsv",
