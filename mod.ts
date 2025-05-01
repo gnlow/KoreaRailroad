@@ -27,11 +27,23 @@ interface Point {
     owner: string
     line: string
     name: string
+
+    long: number
+    lat: number
 }
+
+const entriesMap =
+<V, O>
+(f: (v: V) => O) =>
+(obj: Record<string, V>) =>
+    Object.fromEntries(
+        Object.entries(obj || {})
+            .map(([k, v]) => [k, f(v)])
+    )
 
 const makeInfo =
 ([_, type, ...path]: string[]) =>
-({ name }: Placemark): Path | Point => {
+({ name, Region }: Placemark): Path | Point => {
     if (type == "Path") {
         const [continent, country, state] = path
         const [owner, line] = path.slice(-2)
@@ -49,6 +61,11 @@ const makeInfo =
     if (type == "Point") {
         const [category, state] = path
         const [owner, line] = path.slice(-2)
+
+        const {north, east, west, south} = entriesMap(Number)(
+            Region?.LatLonAltBox as unknown as Record<string, string>
+        )
+
         return {
             type,
             category,
@@ -56,6 +73,9 @@ const makeInfo =
             owner,
             line,
             name,
+
+            long: (east + west) / 2,
+            lat: (north + south) / 2,
         } as Point
     }
     console.log(type)
@@ -74,9 +94,6 @@ const walk =
 ]
 
 const result = walk([])(document)
-    .filter(x => 1
-        //&& x.data[0] == "Point"
-    )
 
 import { stringify as _stringify } from "https://esm.sh/jsr/@std/csv@1.0.6"
 
@@ -100,5 +117,11 @@ await Deno.writeTextFile("./temp/path.tsv",
 )
 
 await Deno.writeTextFile("./temp/point.tsv",
-    stringify(["state", "line", "name"])(result.filter(x => x.type == "Point"))
+    stringify([
+        "state",
+        "line",
+        "name",
+        "long",
+        "lat",
+    ])(result.filter(x => x.type == "Point"))
 )
